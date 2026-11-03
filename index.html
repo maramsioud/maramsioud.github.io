@@ -3,384 +3,507 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Maram Sioud — Terminal</title>
+<title>Maram Sioud — PCB Portfolio</title>
 <style>
   :root {
-    --bg: #0b0d1a;
-    --panel: rgba(255,255,255,0.03);
-    --fg: #d6def5;
-    --dim: #7b84a6;
-    --accent: #7aa2ff;
-    --accent2: #c39bff;
+    --hue: 190;
+    --glow: hsl(var(--hue) 90% 60%);
+    --copper: #b87333;
+    --board: #145a32;
   }
-  [data-theme="cyan"]   { --bg:#061418; --fg:#cdeff5; --dim:#5f8c96; --accent:#22d3ee; --accent2:#67e8f9; }
-  [data-theme="violet"] { --bg:#120a1f; --fg:#e7dcff; --dim:#8a7ba8; --accent:#a78bfa; --accent2:#f0abfc; }
-  [data-theme="aurora"] { --bg:#071a14; --fg:#d3f5e6; --dim:#6b9a86; --accent:#34d399; --accent2:#a3e635; }
-  [data-theme="ember"]  { --bg:#1a0c08; --fg:#fde7d6; --dim:#a07a66; --accent:#fb923c; --accent2:#fbbf24; }
-  [data-theme="nebula"] { --bg:#0b0d1a; --fg:#d6def5; --dim:#7b84a6; --accent:#7aa2ff; --accent2:#c39bff; }
-
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; transition: background .3s; }
-  #stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-  body.nobg #stars { display: none; }
-  .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 28px 18px 40px; min-height: 100%; display: flex; flex-direction: column; gap: 18px; }
+  html, body { margin: 0; min-height: 100%; color: #d8f5e4;
+    font-family: "Courier New", ui-monospace, monospace;
+    background: radial-gradient(circle at 50% 25%, #123221, #06100b 70%); }
 
-  header { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
-  .avatar { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center;
-    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--bg); font-weight: 700; font-size: 28px; }
-  h1 { margin: 0; font-size: 1.6rem; }
-  .title { color: var(--accent); margin-top: 4px; }
-  .tags { color: var(--dim); font-size: .9rem; margin-top: 4px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 18px 30px; }
+  .top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .top h1 { font-size: 1.1rem; margin: 0; letter-spacing: .12em; color: var(--glow); }
 
-  nav { display: flex; gap: 8px; flex-wrap: wrap; }
-  nav button, .theme-btn, .bg-btn {
-    background: var(--panel); color: var(--fg); border: 1px solid var(--dim); border-radius: 6px;
-    padding: 6px 12px; font: inherit; cursor: pointer; }
-  nav button:hover, .theme-btn:hover, .bg-btn:hover { border-color: var(--accent); color: var(--accent); }
-  a { color: var(--accent); }
+  /* BOARD */
+  .board { position: relative; width: 100%; aspect-ratio: 100 / 64; border-radius: 14px; overflow: hidden;
+    background-color: var(--board);
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 2% 3.125%;
+    border: 2px solid rgba(0,0,0,.35); box-shadow: inset 0 0 70px rgba(0,0,0,.55), 0 20px 50px rgba(0,0,0,.5);
+    transition: background-color .6s ease; }
+  .board svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .trace { fill: none; stroke: var(--copper); stroke-width: 1.4; vector-effect: non-scaling-stroke; opacity: .75; transition: stroke .3s, opacity .3s; }
+  .trace.lit { stroke: var(--glow); opacity: 1; }
+  .pulse { fill: none; stroke: var(--glow); stroke-width: 2.2; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    stroke-dasharray: 8 6; opacity: 0; transition: opacity .3s; filter: drop-shadow(0 0 4px var(--glow));
+    animation: flow 1.6s linear infinite; }
+  .pulse.lit { opacity: 1; }
+  @keyframes flow { to { stroke-dashoffset: -14; } }
+  .hole { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #0a2a18; border: 1.5px solid var(--copper); }
+  .silk { position: absolute; left: 3%; top: 3%; font-size: clamp(.55rem, 1vw, .72rem); letter-spacing: .15em; color: rgba(255,255,255,.55); pointer-events: none; }
+  .silk.br { left: auto; right: 3%; top: auto; bottom: 3%; }
 
-  .contact-line { color: var(--dim); font-size: .9rem; }
+  /* COMPONENTS */
+  .comp { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: #161616; color: #e7e7e7; border: 1px solid #3a3a3a; border-radius: 4px; cursor: pointer;
+    font-size: clamp(.55rem, 1.05vw, .8rem); text-align: center; padding: 4px; user-select: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,.5); transition: transform .2s, box-shadow .2s, border-color .2s; }
+  .comp:hover, .comp:focus-visible { transform: translateY(-2px); border-color: var(--glow); outline: none;
+    box-shadow: 0 0 0 2px var(--glow), 0 10px 22px rgba(0,0,0,.6); }
+  .comp .tag { font-size: .65em; color: var(--glow); letter-spacing: .08em; }
+  .comp .name { font-weight: bold; line-height: 1.2; }
+  .chip { background: linear-gradient(160deg, #262626, #0c0c0c); border-color: #555; }
+  .chip .name { font-size: 1.15em; letter-spacing: .05em; }
+  .chip .notch { position: absolute; top: 5px; left: 5px; width: 7px; height: 7px; border-radius: 50%; background: #444; }
+  .rfid { background: #1d3f7a; border-color: #3868b8; color: #fff; }
+  .edu { background: #2b2b2b; }
+  .lcd { background: #0e3d16; border-color: #2b8c3e; color: #b9ffc7; overflow: hidden; justify-content: center; align-items: stretch; }
+  .lcd .tag { color: #b9ffc7; padding: 2px 6px 0; text-align: left; }
+  .lcd .window { overflow: hidden; background: #0a2a10; margin: 2px 6px 6px; border-radius: 2px; }
+  .lcd .scroll { display: inline-block; white-space: nowrap; animation: scroll 22s linear infinite; padding: 3px 0; font-size: .9em; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+  .leds { display: flex; gap: 6px; justify-content: center; }
+  .led { width: 11px; height: 11px; border-radius: 50%; background: #3a1010; box-shadow: inset 0 0 3px #000; transition: background .3s, box-shadow .3s; }
+  .led.on { background: #6dff7d; box-shadow: 0 0 8px #6dff7d, 0 0 16px #6dff7d; }
+  .btn { background: #2a2a2a; border-radius: 4px; }
+  .btn .cap { width: 60%; height: 42%; background: #c0392b; border-radius: 3px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.4); transition: transform .08s; }
+  .btn:active .cap { transform: translateY(2px); }
+  .header { background: repeating-linear-gradient(90deg, #d4af37 0 6px, transparent 6px 10px); border: none; box-shadow: none; }
+  .header:hover { transform: none; box-shadow: none; }
+  .header span.label { color: #111; font-weight: bold; background: #d4af37; padding: 1px 6px; border-radius: 3px; font-size: .75em; }
 
-  .terminal { background: var(--panel); border: 1px solid var(--dim); border-radius: 10px; overflow: hidden; flex: 1; display: flex; flex-direction: column; }
-  .bar { padding: 8px 12px; border-bottom: 1px solid var(--dim); display: flex; gap: 6px; align-items: center; color: var(--dim); font-size: .8rem; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--dim); opacity: .6; }
-  .screen { padding: 14px; overflow-y: auto; max-height: 60vh; min-height: 320px; flex: 1; }
-  .line { white-space: pre-wrap; margin: 0 0 6px; line-height: 1.5; }
-  .muted { color: var(--dim); }
-  .hl { color: var(--accent); }
-  .cmd { color: var(--accent2); }
-  .row { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--dim); }
-  .prompt { color: var(--accent); }
-  input { flex: 1; background: transparent; border: 0; outline: none; color: var(--fg); font: inherit; font-size: 1rem; }
+  /* SERVO */
+  .servo { background: linear-gradient(180deg, #2a5ea8, #1b3f73); border-color: #4a80cc; color: #fff; border-radius: 6px;
+    width: clamp(92px, 11%, 124px); height: clamp(60px, 9vw, 84px); touch-action: none; cursor: grab; }
+  .servo:active { cursor: grabbing; }
+  .servo .label { position: absolute; left: 8px; bottom: 6px; font-size: .62rem; letter-spacing: .08em; color: #cfe2ff; }
+  .servo .readout { position: absolute; right: 8px; top: 6px; font-size: .62rem; color: var(--glow); }
+  .servo .pivot { position: absolute; left: 30%; top: 46%; width: 1px; height: 1px; }
+  .servo .hub { position: absolute; left: 30%; top: 46%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+    background: #e8e8e8; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2), 0 0 0 3px #1b3f73; }
+  .servo .arm { position: absolute; left: 30%; top: 46%; width: 64px; height: 6px; margin-top: -3px;
+    background: linear-gradient(90deg, #f2f2f2, #bdbdbd); border-radius: 3px; transform-origin: 0 50%;
+    transform: rotate(0deg); transition: transform .7s cubic-bezier(.3,1.4,.5,1); }
+  .servo .arm::after { content: ""; position: absolute; right: -2px; top: -5px; width: 6px; height: 16px; background: #888; border-radius: 2px; }
+  .servo.dragging .arm { transition: none; }
 
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--dim); font-size: .85rem; }
-  footer { color: var(--dim); font-size: .8rem; }
+  /* SERIAL MONITOR */
+  .serial { margin-top: 16px; background: #050a07; border: 1px solid #1d4a2e; border-radius: 10px; overflow: hidden; }
+  .serial .bar { padding: 6px 12px; background: #0b1a11; color: #7dd896; font-size: .78rem; border-bottom: 1px solid #1d4a2e; display: flex; justify-content: space-between; }
+  .serial .log { height: 150px; overflow-y: auto; padding: 8px 12px; font-size: .82rem; line-height: 1.5; color: #9ef0b2; }
+  .serial .log div { white-space: pre-wrap; }
+  .serial .log .hl { color: var(--glow); }
+  .hint { margin-top: 10px; font-size: .8rem; opacity: .65; text-align: center; }
+
+  /* DETAIL PANEL */
+  .panel { position: fixed; top: 20px; right: 20px; width: min(400px, 92vw); max-height: 84vh; overflow: auto;
+    background: #0a1510; border: 1px solid var(--glow); border-radius: 12px; padding: 22px;
+    box-shadow: 0 0 30px hsl(var(--hue) 90% 40% / .35); transform: translateX(130%);
+    transition: transform .4s cubic-bezier(.2,.8,.2,1); z-index: 20; }
+  .panel.open { transform: translateX(0); }
+  .panel .close { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--glow); font-size: 1.2rem; cursor: pointer; }
+  .panel .id { font-size: .72rem; color: var(--glow); letter-spacing: .12em; text-transform: uppercase; }
+  .panel h2 { margin: 6px 0 8px; font-size: 1.3rem; }
+  .panel p, .panel li { font-size: .92rem; line-height: 1.55; }
+  .panel ul { padding-left: 18px; }
+  .panel .sub { color: #9fd9b5; margin-top: -4px; }
+  .panel .kv { list-style: none; padding: 0; }
+  .panel .kv li { border-bottom: 1px dashed #234; padding: 6px 0; }
+  .panel .kv span { color: var(--glow); display: inline-block; width: 110px; }
+  .panel a { color: var(--glow); }
+  .panel .proj { border-left: 3px solid var(--glow); padding-left: 10px; margin: 14px 0; }
+  .panel .proj b { color: #fff; }
+  .panel .proj small { color: #8fb9a0; display: block; margin: 2px 0 4px; }
+
+  /* BOOT */
+  .boot { position: fixed; inset: 0; background: #000; color: #6dff7d; font-size: .95rem; padding: 40px; z-index: 50;
+    transition: opacity .6s; cursor: pointer; }
+  .boot.hide { opacity: 0; pointer-events: none; }
+  .boot pre { margin: 0; white-space: pre-wrap; line-height: 1.5; }
+  .boot .skip { position: absolute; bottom: 20px; right: 24px; font-size: .75rem; opacity: .6; }
+  .cur { display: inline-block; width: 9px; height: 1em; background: #6dff7d; vertical-align: middle; animation: blink .8s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  @media (max-width: 760px) {
+    .panel { top: auto; bottom: 0; right: 0; left: 0; width: 100%; max-height: 62vh; border-radius: 14px 14px 0 0; transform: translateY(110%); }
+    .panel.open { transform: translateY(0); }
+    .comp { font-size: .6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<canvas id="stars"></canvas>
+
+<div class="boot" id="boot" title="Click to skip"><pre id="bootText"></pre><div class="skip">click to skip</div></div>
 
 <div class="wrap">
-  <header>
-    <div class="avatar">MS</div>
-    <div>
-      <h1>Maram Sioud</h1>
-      <div class="title">Computer Systems Engineering student · IoT &amp; Embedded Systems</div>
-      <div class="tags">Embedded · IoT · Web · Data</div>
-    </div>
+  <header class="top">
+    <h1>MARAM SIOUD // PCB REV 2026</h1>
   </header>
 
-  <nav>
-    <button data-cmd="about">about</button>
-    <button data-cmd="projects">projects</button>
-    <button data-cmd="experience">experience</button>
-    <button data-cmd="skills">skills</button>
-    <button data-cmd="contact">contact</button>
-    <button data-cmd="open cv">Resume</button>
-  </nav>
-
-  <div class="contact-line">
-    maram.sioud1@gmail.com · +216 21 823 841 · Hammam Sousse, Tunisia · Available Feb – May 2027
+  <div class="board" id="board">
+    <svg viewBox="0 0 100 64" preserveAspectRatio="none" id="traces"></svg>
+    <div class="silk">MS-PORTFOLIO · IOT · EMBEDDED</div>
+    <div class="silk br">HAMMAM SOUSSE · TN</div>
   </div>
 
-  <div class="terminal">
-    <div class="bar">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      <span style="margin-left:8px">maram@portfolio: ~</span>
-    </div>
-    <div class="screen" id="screen"></div>
-    <div class="row">
-      <span class="prompt">$</span>
-      <input id="input" autocomplete="off" spellcheck="false" placeholder="type help">
-    </div>
+  <div class="serial">
+    <div class="bar"><span>SERIAL MONITOR · 115200 baud</span><span id="uptime">uptime 00:00</span></div>
+    <div class="log" id="serial"></div>
   </div>
-
-  <div class="controls">
-    <span>theme:</span>
-    <button class="theme-btn" data-theme-name="nebula">Nebula</button>
-    <button class="theme-btn" data-theme-name="cyan">Cyan</button>
-    <button class="theme-btn" data-theme-name="violet">Violet</button>
-    <button class="theme-btn" data-theme-name="aurora">Aurora</button>
-    <button class="theme-btn" data-theme-name="ember">Ember</button>
-    <button class="bg-btn" id="bgToggle">BG: On</button>
-  </div>
-
-  <footer>Tip: ↑/↓ history · Tab autocomplete · type help to see commands</footer>
+  <p class="hint">Hover a component to light its trace. Click to inspect. Click the servo to change the theme, or drag its horn to pick a glow color. RESET replays the boot.</p>
 </div>
 
+<aside class="panel" id="panel" role="dialog" aria-live="polite">
+  <button class="close" id="close" aria-label="Close">✕</button>
+  <div id="panelBody"></div>
+</aside>
+
 <script>
-// ---------- DATA (edit these) ----------
+// ---------- DATA (edit here) ----------
 const DATA = {
-  name: "Maram Sioud",
   email: "maram.sioud1@gmail.com",
   phone: "+216 21 823 841",
   linkedin: "https://www.linkedin.com/in/maram-sioud-472329387/",
   github: "https://github.com/maramsioud",
-  cv: "CV.pdf",
-  about: [
-    "Computer Systems Engineering student at ISITCOM (Hammam Sousse, Tunisia).",
-    "Interested in IoT and embedded systems. I like building complete projects that",
-    "combine hardware and software: RFID access control, soil monitoring on Arduino,",
-    "and web applications.",
-    "Available from February to the end of May 2027."
-  ],
-  projects: {
-    rfid: {
-      title: "Smart RFID Lock System",
-      meta: "Arduino · C++ · Python · Laravel · MySQL · August 2026",
-      lines: [
-        "End-to-end IoT access control platform.",
-        "• Arduino microcontroller (C++) with RC522 RFID reader, servo-driven lock and LCD status display.",
-        "• Python serial gateway between the board and a Laravel web dashboard.",
-        "• Laravel back-office: card registration, roles & access, real-time analytics, activity logs."
-      ]
-    },
-    soil: {
-      title: "Soil Moisture Monitoring System",
-      meta: "Arduino · Sensors · C++ · April 2026",
-      lines: [
-        "Soil moisture measurement with real-time data display.",
-        "• Microcontroller programmed in C++, sensors integrated.",
-        "• Hands-on IoT and embedded programming."
-      ]
-    },
-    adoption: {
-      title: "Animal Adoption Website",
-      meta: "HTML · CSS · JavaScript · PHP · March 2026",
-      lines: [
-        "Web platform connecting animals with adopters.",
-        "• Ergonomic interface designed in Figma.",
-        "• Database-backed listings and adoption requests."
-      ]
-    }
-  },
-  experience: [
-    { role: "Engineering / IT Intern", where: "LEONI (Sousse)", when: "June – August 2026",
-      lines: [
-        "• Two-month internship in an automotive industrial environment.",
-        "• Built an end-to-end RFID access control system.",
-        "• Developed a Laravel stock management app with a web dashboard."
-      ] }
-  ],
-  education: [
-    { title: "Bachelor's Degree in Computer Systems Engineering",
-      where: "ISITCOM — Hammam Sousse, Tunisia",
-      when: "September 2024 – Present",
-      lines: ["Focus: Embedded Systems & IoT"] }
-  ],
-  skills: [
-    ["Embedded & IoT", "C/C++ (Arduino), RFID RC522, servo motor, LCD, serial communication"],
-    ["Programming", "Python, Java, JavaScript"],
-    ["Web & Data", "Laravel, PHP, HTML/CSS, SQL/MySQL, MongoDB, data analysis, AI"],
-    ["Tools", "VS Code, Figma"]
-  ],
-  certs: [
-    "NVIDIA Deep Learning Certification, NVIDIA — Nov 2026",
-    "Networking Academy Learn-A-Thon 2025, Cisco — Jan 2026",
-    "Introduction to AI & Generative AI, Udacity — Mar 2026",
-    "Image Processing with Python, DataCamp — Dec 2025"
-  ],
-  hackathons: [
-    "AKT26 Hackathon – Al-Khawarizmi Tour 2026, AI Track (Nov 2026): took part as part of a team.",
-    "CYBERBENDERS AI Challenge — 16-hour cybersecurity hackathon (Nov 2024): CTF challenges, penetration testing, network analysis."
-  ],
-  languages: ["Arabic (Native)", "French (Fluent)", "English (Fluent)"]
+  cv: "CV.pdf"
 };
 
-// ---------- THEMES ----------
-const THEMES = ["nebula", "cyan", "violet", "aurora", "ember"];
+const SKILLS = [
+  "C/C++", "Arduino", "Python", "Java", "JavaScript", "Laravel", "PHP",
+  "SQL/MySQL", "MongoDB", "RFID RC522", "Serial comms", "IoT", "Figma", "AI", "Data analysis"
+];
 
-// ---------- TERMINAL ----------
-const screen = document.getElementById("screen");
-const input = document.getElementById("input");
-const history = [];
-let histIdx = -1;
+// Themes the servo steps through. Each has a board color and a glow hue.
+const THEMES = [
+  { name: "Circuit green", board: "#145a32", hue: 150 },
+  { name: "Midnight blue", board: "#16315a", hue: 210 },
+  { name: "Royal violet",  board: "#3b1f55", hue: 280 },
+  { name: "Copper dusk",   board: "#4a2a18", hue: 25  },
+  { name: "Slate ice",     board: "#263840", hue: 185 }
+];
 
-function out(text, cls = "") {
-  const d = document.createElement("div");
-  d.className = "line " + cls;
-  d.textContent = text;
-  screen.appendChild(d);
-  screen.scrollTop = screen.scrollHeight;
-}
-function outHTML(html) {
-  const d = document.createElement("div");
-  d.className = "line";
-  d.innerHTML = html;
-  screen.appendChild(d);
-  screen.scrollTop = screen.scrollHeight;
-}
-function blank() { out(""); }
+// Trace paths in the board's coordinate space (viewBox 0–100 × 0–64).
+const TRACES = [
+  { id: "projects",   d: "M26 13 H32 V24 H38" },
+  { id: "experience", d: "M72 11 H58 V18" },
+  { id: "education",  d: "M22 31 H38" },
+  { id: "skills",     d: "M36 49 H44 V40" },
+  { id: "certs",      d: "M70 37 H62" },
+  { id: "servo",      d: "M51 48 V40" },
+  { id: null, d: "M0 6 H4" },
+  { id: null, d: "M96 58 H100" },
+  { id: null, d: "M20 62 H74" }
+];
 
-function welcome() {
-  out("Welcome to Maram's terminal — type help to see commands.", "hl");
-  out("Try: projects, project rfid, open cv, theme aurora");
-  blank();
-}
+// x/y/w/h: x and w are % of board width; y and h are in 0–64 board units.
+const COMPONENTS = [
+  { id: "about",      kind: "chip",  x: 38, y: 18, w: 24, h: 22,
+    html: `<span class="notch"></span><span class="tag">MCU · MS-01</span><span class="name">MARAM<br>SIOUD</span><span class="tag">ENGINEER</span>` },
+  { id: "projects",   kind: "rfid",  x: 6,  y: 6,  w: 20, h: 14,
+    html: `<span class="tag">RFID</span><span class="name">RC522</span><span class="tag">PROJECTS</span>` },
+  { id: "experience", kind: "edu",   x: 72, y: 5,  w: 18, h: 12,
+    html: `<span class="tag">EXPERIENCE</span><span class="name">LEONI</span><span class="tag">INTERN · 2026</span>` },
+  { id: "education",  kind: "edu",   x: 6,  y: 27, w: 16, h: 9,
+    html: `<span class="tag">EDU</span><span class="name">ISITCOM</span>` },
+  { id: "skills",     kind: "lcd",   x: 6,  y: 44, w: 30, h: 11,
+    html: `<span class="tag">LCD 16×2 · SKILLS</span><div class="window"><span class="scroll" id="lcdScroll"></span></div>` },
+  { id: "certs",      kind: "certs", x: 70, y: 36, w: 22, h: 11,
+    html: `<span class="tag">LEDs · CERTS &amp; HACKS</span><div class="leds"><span class="led on"></span><span class="led"></span><span class="led"></span><span class="led on"></span></div>` },
+  { id: "servo",      kind: "servo", x: 44, y: 46, servo: true,
+    html: `<span class="readout" id="servoReadout">0°</span><span class="pivot" id="servoPivot"></span><span class="hub"></span><span class="arm" id="servoArm"></span><span class="label">SG90 · THEME</span>` },
+  { id: "reset",      kind: "btn",   x: 66, y: 48, w: 8,  h: 8,
+    html: `<div class="cap"></div><span class="tag">RESET</span>` },
+  { id: "contact",    kind: "header",x: 74, y: 58, w: 20, h: 4,
+    html: `<span class="label">CONTACT</span>` }
+];
 
-const commands = {
-  help() {
-    out("Available commands:", "hl");
-    [
-      ["about", "who I am"],
-      ["projects", "list projects"],
-      ["project <name>", "details (rfid, soil, adoption)"],
-      ["experience", "work experience"],
-      ["education", "education"],
-      ["skills", "technical skills"],
-      ["hackathons", "competitions"],
-      ["certs", "certifications & courses"],
-      ["languages", "languages spoken"],
-      ["contact", "email, phone, links"],
-      ["open <cv|linkedin|github>", "open a link in a new tab"],
-      ["theme <name>", "nebula | cyan | violet | aurora | ember"],
-      ["bg <on|off>", "toggle the starfield background"],
-      ["clear", "clear the screen"]
-    ].forEach(([c, d]) => outHTML(`<span class="cmd">${c.padEnd(26, " ")}</span><span class="muted">${d}</span>`));
-  },
-  about() { DATA.about.forEach(l => out(l)); },
-  projects() {
-    out("Projects:", "hl");
-    Object.entries(DATA.projects).forEach(([k, p]) =>
-      outHTML(`  <span class="cmd">${k.padEnd(10, " ")}</span>${p.title} <span class="muted">— ${p.meta.split(" · ").slice(-1)[0]}</span>`));
-    blank();
-    out("Type: project <name>", "muted");
-  },
-  project(args) {
-    const key = (args[0] || "").toLowerCase();
-    const p = DATA.projects[key];
-    if (!p) return out(`No project "${args[0] || ""}". Try: projects`, "muted");
-    out(p.title, "hl");
-    out(p.meta, "muted");
-    p.lines.forEach(l => out(l));
-  },
-  experience() {
-    DATA.experience.forEach(e => {
-      out(`${e.role} — ${e.where}`, "hl");
-      out(e.when, "muted");
-      e.lines.forEach(l => out(l));
-      blank();
-    });
-  },
-  education() {
-    DATA.education.forEach(e => {
-      out(e.title, "hl");
-      out(e.where, "muted");
-      out(e.when, "muted");
-      e.lines.forEach(l => out(l));
-    });
-  },
-  skills() {
-    out("Skills:", "hl");
-    DATA.skills.forEach(([k, v]) => outHTML(`<span class="cmd">${k}:</span> ${v}`));
-  },
-  hackathons() { out("Hackathons:", "hl"); DATA.hackathons.forEach(l => out("• " + l)); },
-  certs() { out("Certifications & courses:", "hl"); DATA.certs.forEach(l => out("• " + l)); },
-  languages() { out("Languages:", "hl"); DATA.languages.forEach(l => out("• " + l)); },
-  contact() {
-    out("Contact:", "hl");
-    outHTML(`email    <a href="mailto:${DATA.email}">${DATA.email}</a>`);
-    out("phone    " + DATA.phone);
-    outHTML(`linkedin <a href="${DATA.linkedin}" target="_blank" rel="noopener">${DATA.linkedin}</a>`);
-    outHTML(`github   <a href="${DATA.github}" target="_blank" rel="noopener">${DATA.github}</a>`);
-  },
-  open(args) {
-    const t = (args[0] || "").toLowerCase();
-    const map = { cv: DATA.cv, resume: DATA.cv, linkedin: DATA.linkedin, github: DATA.github };
-    if (map[t]) { window.open(map[t], "_blank", "noopener"); return out(`Opening ${t}…`, "muted"); }
-    if (DATA.projects[t]) return commands.project([t]);
-    out("Usage: open <cv|linkedin|github>", "muted");
-  },
-  theme(args) {
-    const t = (args[0] || "").toLowerCase();
-    if (!THEMES.includes(t)) return out("Usage: theme <nebula|cyan|violet|aurora|ember>", "muted");
-    document.documentElement.setAttribute("data-theme", t);
-    out(`Theme set to ${t}.`, "muted");
-  },
-  bg(args) {
-    const v = (args[0] || "").toLowerCase();
-    if (v !== "on" && v !== "off") return out("Usage: bg <on|off>", "muted");
-    setBg(v === "on");
-    out(`Background ${v}.`, "muted");
-  },
-  clear() { screen.innerHTML = ""; },
-  whoami() { out(DATA.name); },
-  sudo() { out("Nice try. Permission denied.", "muted"); }
+// ---------- PANEL CONTENT (matches the CV) ----------
+const PANELS = {
+  about: () => `
+    <div class="id">MCU · about</div>
+    <h2>Maram Sioud</h2>
+    <p class="sub">Computer Systems Engineering student · IoT &amp; Embedded Systems</p>
+    <p>I build systems where hardware and software meet: sensors and microcontrollers on one side, web dashboards and data on the other.</p>
+    <ul class="kv">
+      <li><span>Location</span>Hammam Sousse, Tunisia</li>
+      <li><span>Languages</span>Arabic (native), French &amp; English (fluent)</li>
+    </ul>`,
+  projects: () => `
+    <div class="id">RFID module · projects</div>
+    <h2>Selected projects</h2>
+    <div class="proj"><b>Smart RFID Lock System</b><small>Arduino · C++ · Python · Laravel · MySQL · Aug 2026</small>
+      End-to-end IoT access control: RC522 reader, servo lock, LCD status, a Python serial gateway and a Laravel dashboard with analytics and logs.</div>
+    <div class="proj"><b>Soil Moisture Monitoring</b><small>Arduino · Sensors · C++ · Apr 2026</small>
+      Real-time soil moisture measurement with sensors integrated into a C++ microcontroller program.</div>
+    <div class="proj"><b>Animal Adoption Website</b><small>HTML · CSS · JavaScript · PHP · Mar 2026</small>
+      Platform connecting animals with adopters, with an interface designed in Figma and a database behind it.</div>`,
+  experience: () => `
+    <div class="id">Module · experience</div>
+    <h2>Engineering / IT Intern</h2>
+    <p class="sub">LEONI (Sousse) · June – August 2026</p>
+    <ul>
+      <li>Two-month internship in an automotive industrial environment.</li>
+      <li>Built an end-to-end RFID access control system.</li>
+      <li>Developed a Laravel stock management app with a web dashboard.</li>
+    </ul>`,
+  education: () => `
+    <div class="id">Module EDU · education</div>
+    <h2>Bachelor's Degree</h2>
+    <p class="sub">Computer Systems Engineering · ISITCOM, Hammam Sousse</p>
+    <p>September 2024 – Present<br>Focus: Embedded Systems &amp; IoT</p>`,
+  skills: () => `
+    <div class="id">LCD 16×2 · skills</div>
+    <h2>Technical skills</h2>
+    <ul class="kv">
+      <li><span>Embedded &amp; IoT</span>C/C++ (Arduino), RFID RC522, servo, LCD, serial</li>
+      <li><span>Programming</span>Python, Java, JavaScript</li>
+      <li><span>Web &amp; Data</span>Laravel, PHP, HTML/CSS, SQL/MySQL, MongoDB, data analysis, AI</li>
+      <li><span>Tools</span>VS Code, Figma</li>
+    </ul>`,
+  certs: () => `
+    <div class="id">LED array · certifications &amp; hackathons</div>
+    <h2>Certifications</h2>
+    <ul>
+      <li>NVIDIA Deep Learning Certification (Nov 2026)</li>
+      <li>Networking Academy Learn-A-Thon 2025, Cisco (Jan 2026)</li>
+      <li>Introduction to AI &amp; Generative AI, Udacity (Mar 2026)</li>
+      <li>Image Processing with Python, DataCamp (Dec 2025)</li>
+    </ul>
+    <h2 style="margin-top:18px">Hackathons</h2>
+    <ul>
+      <li>AKT26 Hackathon, Al-Khawarizmi Tour 2026, AI Track (Nov 2026), as part of a team</li>
+      <li>CYBERBENDERS AI Challenge, 16-hour cybersecurity hackathon (Nov 2024)</li>
+    </ul>`,
+  contact: () => `
+    <div class="id">Header pins · contact</div>
+    <h2>Let's connect</h2>
+    <ul class="kv">
+      <li><span>Email</span><a href="mailto:${DATA.email}">${DATA.email}</a></li>
+      <li><span>Phone</span>${DATA.phone}</li>
+      <li><span>LinkedIn</span><a href="${DATA.linkedin}" target="_blank" rel="noopener">View profile</a></li>
+      <li><span>GitHub</span><a href="${DATA.github}" target="_blank" rel="noopener">View profile</a></li>
+      <li><span>Resume</span><a href="${DATA.cv}" target="_blank" rel="noopener">Download CV (PDF)</a></li>
+    </ul>`
 };
 
-function run(raw) {
-  const line = raw.trim();
-  if (!line) return;
-  out("$ " + line, "cmd");
-  const [cmd, ...args] = line.split(/\s+/);
-  const fn = commands[cmd.toLowerCase()];
-  if (fn) fn(args); else out(`command not found: ${cmd}. Type help.`, "muted");
-  blank();
+// ---------- SERIAL MONITOR ----------
+const serialEl = document.getElementById("serial");
+const startTime = Date.now();
+function stamp() { return new Date().toTimeString().slice(0, 8); }
+function log(msg, cls = "") {
+  const d = document.createElement("div");
+  d.className = cls;
+  d.textContent = `[${stamp()}] ${msg}`;
+  serialEl.appendChild(d);
+  while (serialEl.children.length > 60) serialEl.firstChild.remove();
+  serialEl.scrollTop = serialEl.scrollHeight;
 }
+setInterval(() => {
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  document.getElementById("uptime").textContent =
+    `uptime ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}, 1000);
 
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    const v = input.value;
-    if (v.trim()) history.push(v);
-    histIdx = history.length;
-    run(v);
-    input.value = "";
-  } else if (e.key === "ArrowUp") {
-    if (histIdx > 0) { histIdx--; input.value = history[histIdx]; }
-    e.preventDefault();
-  } else if (e.key === "ArrowDown") {
-    if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx]; }
-    else { histIdx = history.length; input.value = ""; }
-    e.preventDefault();
-  } else if (e.key === "Tab") {
-    e.preventDefault();
-    const names = Object.keys(commands);
-    const m = names.filter(n => n.startsWith(input.value.trim().toLowerCase()));
-    if (m.length === 1) input.value = m[0] + " ";
+// ---------- BUILD BOARD ----------
+const board = document.getElementById("board");
+const svg = document.getElementById("traces");
+const NS = "http://www.w3.org/2000/svg";
+
+TRACES.forEach(t => {
+  const base = document.createElementNS(NS, "path");
+  base.setAttribute("d", t.d);
+  base.setAttribute("class", "trace");
+  if (t.id) base.dataset.for = t.id;
+  svg.appendChild(base);
+
+  if (t.id) {
+    const pulse = document.createElementNS(NS, "path");
+    pulse.setAttribute("d", t.d);
+    pulse.setAttribute("class", "pulse");
+    pulse.setAttribute("pathLength", "100");
+    pulse.dataset.for = t.id;
+    pulse.style.animationDelay = (-Math.random() * 1.6).toFixed(2) + "s";
+    svg.appendChild(pulse);
   }
 });
 
-// Nav buttons and theme buttons run commands
-document.querySelectorAll("[data-cmd]").forEach(b =>
-  b.addEventListener("click", () => { run(b.dataset.cmd); input.focus(); }));
-document.querySelectorAll("[data-theme-name]").forEach(b =>
-  b.addEventListener("click", () => { run("theme " + b.dataset.themeName); }));
-
-// ---------- BACKGROUND STARS ----------
-const canvas = document.getElementById("stars");
-const ctx = canvas.getContext("2d");
-let stars = [];
-function resize() {
-  canvas.width = innerWidth; canvas.height = innerHeight;
-  stars = Array.from({ length: 140 }, () => ({
-    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-    r: Math.random() * 1.4 + 0.2, s: Math.random() * 0.25 + 0.05 }));
-}
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent") || "#fff";
-  stars.forEach(s => {
-    s.y += s.s; if (s.y > canvas.height) s.y = 0;
-    ctx.globalAlpha = 0.25 + s.r / 2;
-    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
-  });
-  requestAnimationFrame(draw);
-}
-const bgBtn = document.getElementById("bgToggle");
-function setBg(on) {
-  document.body.classList.toggle("nobg", !on);
-  bgBtn.textContent = "BG: " + (on ? "On" : "Off");
-}
-bgBtn.addEventListener("click", () => {
-  const on = document.body.classList.contains("nobg");
-  setBg(on);
+[[5,5],[95,5],[5,59],[95,59],[50,3],[3,32],[62,60]].forEach(([x, y]) => {
+  const h = document.createElement("div");
+  h.className = "hole";
+  h.style.left = x + "%";
+  h.style.top = (y / 64 * 100) + "%";
+  board.appendChild(h);
 });
-addEventListener("resize", resize);
-resize(); draw();
 
-welcome();
-input.focus();
+const lcdText = SKILLS.join("  ·  ") + "  ·  ";
+
+COMPONENTS.forEach(c => {
+  const el = document.createElement("div");
+  el.className = `comp ${c.kind}`;
+  el.dataset.id = c.id;
+  el.tabIndex = 0;
+  el.setAttribute("role", "button");
+  el.setAttribute("aria-label", c.id);
+  el.style.left = c.x + "%";
+  el.style.top = (c.y / 64 * 100) + "%";
+  if (!c.servo) {
+    el.style.width = c.w + "%";
+    el.style.height = (c.h / 64 * 100) + "%";
+  }
+  el.innerHTML = c.html;
+  board.appendChild(el);
+});
+document.getElementById("lcdScroll").textContent = lcdText + lcdText;
+
+// ---------- TRACE HIGHLIGHT ----------
+function litTraces(id, on) {
+  svg.querySelectorAll(`[data-for="${id}"]`).forEach(p => p.classList.toggle("lit", on));
+}
+
+// ---------- PANEL ----------
+const panel = document.getElementById("panel");
+const panelBody = document.getElementById("panelBody");
+const NICE = {
+  about: "MCU", projects: "RFID module", experience: "Experience module", education: "EDU module",
+  skills: "LCD 16×2", certs: "LED array", contact: "Header pins"
+};
+function openPanel(id) {
+  if (!PANELS[id]) return;
+  panelBody.innerHTML = PANELS[id]();
+  panel.classList.add("open");
+  log(`${NICE[id] || id} selected → opening ${id}`, "hl");
+}
+function closePanel() { panel.classList.remove("open"); }
+document.getElementById("close").onclick = closePanel;
+addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
+
+board.addEventListener("pointerenter", e => {
+  const el = e.target.closest?.(".comp");
+  if (el && el.dataset.id !== "servo") litTraces(el.dataset.id, true);
+}, true);
+board.addEventListener("pointerleave", e => {
+  const el = e.target.closest?.(".comp");
+  if (el) litTraces(el.dataset.id, false);
+}, true);
+
+board.addEventListener("click", e => {
+  const el = e.target.closest(".comp");
+  if (!el || el.dataset.id === "servo") return;
+  if (el.dataset.id === "reset") return runBoot();
+  openPanel(el.dataset.id);
+});
+board.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("comp")) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
+// ---------- SERVO: click = next theme, drag = pick glow hue ----------
+const servoEl = board.querySelector('[data-id="servo"]');
+const arm = document.getElementById("servoArm");
+const pivot = document.getElementById("servoPivot");
+const servoReadout = document.getElementById("servoReadout");
+let themeIndex = 0;
+let angle = 0;              // 0–180 degrees, like a real SG90
+let dragStart = null;
+let dragged = false;
+
+function applyTheme(i) {
+  const t = THEMES[i];
+  document.documentElement.style.setProperty("--board", t.board);
+  document.documentElement.style.setProperty("--hue", t.hue);
+}
+function setServo(deg) {
+  angle = Math.max(0, Math.min(180, deg));
+  arm.style.transform = `rotate(${-angle}deg)`;
+  const hue = Math.round(angle * 2);
+  document.documentElement.style.setProperty("--hue", hue);
+  servoReadout.textContent = `${Math.round(angle)}°`;
+}
+function angleFromPointer(x, y) {
+  const r = pivot.getBoundingClientRect();
+  const cx = r.left, cy = r.top;
+  const deg = Math.atan2(-(y - cy), x - cx) * 180 / Math.PI;
+  return deg;
+}
+
+servoEl.addEventListener("pointerdown", e => {
+  dragStart = { x: e.clientX, y: e.clientY };
+  dragged = false;
+  servoEl.setPointerCapture(e.pointerId);
+  servoEl.classList.add("dragging");
+});
+servoEl.addEventListener("pointermove", e => {
+  if (!dragStart) return;
+  if (Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) > 5) dragged = true;
+  if (dragged) setServo(angleFromPointer(e.clientX, e.clientY));
+});
+function endServo() {
+  if (!dragStart) return;
+  servoEl.classList.remove("dragging");
+  if (dragged) {
+    log(`SERVO ${Math.round(angle)}° → glow hue ${Math.round(angle * 2)}°`, "hl");
+  } else {
+    themeIndex = (themeIndex + 1) % THEMES.length;
+    const t = THEMES[themeIndex];
+    applyTheme(themeIndex);
+    setServo(themeIndex * 45);            // sweep to a stop that matches the theme
+    log(`SERVO → theme: ${t.name}`, "hl");
+  }
+  dragStart = null;
+}
+servoEl.addEventListener("pointerup", endServo);
+servoEl.addEventListener("pointercancel", endServo);
+
+// Start on the first theme
+applyTheme(0);
+setServo(0);
+
+// ---------- LEDs: one lights up at random ----------
+const leds = [...document.querySelectorAll(".led")];
+setInterval(() => {
+  leds.forEach(l => l.classList.remove("on"));
+  leds[Math.floor(Math.random() * leds.length)].classList.add("on");
+}, 2600);
+
+// ---------- BOOT SEQUENCE ----------
+const bootLines = [
+  "MS-BIOS v2026.11 .............. OK",
+  "Checking RC522 RFID reader .... OK",
+  "Mounting servo SG90 ........... OK",
+  "Initializing LCD 16x2 ......... OK",
+  "Loading profile: Maram Sioud .. OK",
+  "Domains: Embedded · IoT · Web · Data",
+  "Ready. Click the servo to change the theme."
+];
+let bootTimer = null;
+function finishBoot() {
+  clearTimeout(bootTimer);
+  document.getElementById("bootText").innerHTML = bootLines.join("\n") + '\n<span class="cur"></span>';
+  setTimeout(() => document.getElementById("boot").classList.add("hide"), 500);
+}
+function runBoot() {
+  const boot = document.getElementById("boot");
+  const pre = document.getElementById("bootText");
+  boot.classList.remove("hide");
+  pre.textContent = "";
+  let i = 0;
+  const tick = () => {
+    if (i < bootLines.length) {
+      pre.textContent += bootLines[i++] + "\n";
+      bootTimer = setTimeout(tick, 260);
+    } else {
+      pre.innerHTML += '<span class="cur"></span>';
+      bootTimer = setTimeout(() => boot.classList.add("hide"), 700);
+    }
+  };
+  tick();
+  log("RESET pressed → rebooting", "hl");
+}
+document.getElementById("boot").addEventListener("click", finishBoot);
+runBoot();
+log("Serial monitor ready");
+log("Click the servo to cycle themes, or drag its horn for a custom glow");
 </script>
 </body>
 </html>
